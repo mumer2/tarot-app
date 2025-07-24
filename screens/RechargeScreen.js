@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '../context/ThemeContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import i18n from '../utils/i18n';
@@ -24,29 +24,36 @@ export default function RechargeScreen() {
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
-  useEffect(() => {
-    const loadBalance = async () => {
-      try {
-        const value = await AsyncStorage.getItem('@wallet_balance');
-        setBalance(value ? parseFloat(value) : 0);
-      } catch (e) {
-        console.error('Error loading balance:', e);
-      }
-    };
-    loadBalance();
-  }, []);
-
-  const updateHistory = async (amount) => {
+  const fetchBalanceFromServer = async () => {
     try {
-      const old = await AsyncStorage.getItem('@wallet_history');
-      const history = old ? JSON.parse(old) : [];
-      history.push({ createdAt: new Date().toISOString(), amount });
-      await AsyncStorage.setItem('@wallet_history', JSON.stringify(history));
+      const userId = await AsyncStorage.getItem('@user_id');
+      if (!userId) return;
+
+      const res = await axios.post(
+        'https://backend-tarot-app.netlify.app/.netlify/functions/get-balance',
+        { userId }
+      );
+
+      if (res.data?.balance !== undefined) {
+        await AsyncStorage.setItem('@wallet_balance', res.data.balance.toString());
+        setBalance(res.data.balance);
+      }
     } catch (err) {
-      console.error('Failed to update history:', err);
+      console.error('❌ Error fetching wallet balance:', err.message);
     }
   };
+
+  useEffect(() => {
+    const loadLocalBalance = async () => {
+      const value = await AsyncStorage.getItem('@wallet_balance');
+      setBalance(value ? parseFloat(value) : 0);
+    };
+
+    loadLocalBalance();
+    fetchBalanceFromServer(); // Fetch latest balance from server on mount or focus
+  }, [isFocused]);
 
   const handleWeChatH5Pay = async (amount) => {
     if (!amount || isNaN(amount) || amount < 1) {
@@ -63,21 +70,18 @@ export default function RechargeScreen() {
         { total_fee: amount * 100, userId }
       );
 
-      if (res.data && res.data.paymentUrl) {
+      if (res.data?.paymentUrl) {
         await AsyncStorage.setItem('@last_order_amount', amount.toString());
-
         const supported = await Linking.canOpenURL(res.data.paymentUrl);
-        if (supported) {
-          Linking.openURL(res.data.paymentUrl);
-        } else {
-          Alert.alert('Cannot open WeChat payment page');
-        }
+        supported
+          ? Linking.openURL(res.data.paymentUrl)
+          : Alert.alert('Cannot open WeChat payment page');
       } else {
-        Alert.alert('WeChat Error', res.data.error || 'Missing payment URL');
+        Alert.alert('WeChat Pay Error', res.data.error || 'Missing payment URL');
       }
     } catch (err) {
-      console.error('WeChat H5 error:', err);
-      Alert.alert('❌ Error', err.message || 'Unexpected payment error');
+      console.error('WeChat error:', err);
+      Alert.alert('❌ Error', err.message || 'Unexpected WeChat payment error');
     } finally {
       setLoading(false);
     }
@@ -95,27 +99,53 @@ export default function RechargeScreen() {
 
       const res = await axios.post(
         'https://backend-tarot-app.netlify.app/.netlify/functions/paypal-pay',
-        {
-          amount: amount,
-          userId: userId
-        }
+        { amount, userId }
       );
 
-      if (res.data && res.data.approvalUrl) {
+      if (res.data?.approvalUrl) {
         await AsyncStorage.setItem('@last_order_amount', amount.toString());
-
         const supported = await Linking.canOpenURL(res.data.approvalUrl);
-        if (supported) {
-          Linking.openURL(res.data.approvalUrl);
-        } else {
-          Alert.alert('Cannot open PayPal payment page');
-        }
+        supported
+          ? Linking.openURL(res.data.approvalUrl)
+          : Alert.alert('Cannot open PayPal payment page');
       } else {
         Alert.alert('PayPal Error', res.data.error || 'Missing approval URL');
       }
     } catch (err) {
       console.error('PayPal error:', err);
       Alert.alert('❌ Error', err.message || 'Unexpected PayPal error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplePay = async (amount) => {
+    if (!amount || isNaN(amount) || amount < 1) {
+      return Alert.alert('⚠️ Invalid amount', 'Please enter an amount ≥ 1 USD.');
+    }
+
+    try {
+      setLoading(true);
+      const userId = await AsyncStorage.getItem('@user_id');
+      if (!userId) return Alert.alert('❌ Error', 'User ID not found');
+
+      const res = await axios.post(
+        'https://backend-tarot-app.netlify.app/.netlify/functions/apple-pay',
+        { amount, userId }
+      );
+
+      if (res.data?.paymentUrl) {
+        await AsyncStorage.setItem('@last_order_amount', amount.toString());
+        const supported = await Linking.canOpenURL(res.data.paymentUrl);
+        supported
+          ? Linking.openURL(res.data.paymentUrl)
+          : Alert.alert('Cannot open Apple Pay checkout page');
+      } else {
+        Alert.alert('Apple Pay Error', res.data.error || 'Missing session URL');
+      }
+    } catch (err) {
+      console.error('Apple Pay error:', err);
+      Alert.alert('❌ Error', err.message || 'Unexpected Apple Pay error');
     } finally {
       setLoading(false);
     }
@@ -155,6 +185,16 @@ export default function RechargeScreen() {
       >
         <Text style={[styles(isDark).buttonText, { color: '#fff' }]}>
           PayPal {manualAmount || '...'} $
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles(isDark).button, { backgroundColor: '#000' }]}
+        onPress={() => handleApplePay(Number(manualAmount || 0))}
+        disabled={loading}
+      >
+        <Text style={[styles(isDark).buttonText, { color: '#fff' }]}>
+           Apple Pay {manualAmount || '...'} $
         </Text>
       </TouchableOpacity>
 
@@ -238,6 +278,7 @@ const styles = (isDark) =>
       paddingHorizontal: 10
     }
   });
+
 
 
 

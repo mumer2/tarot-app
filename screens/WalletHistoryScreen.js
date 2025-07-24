@@ -28,20 +28,18 @@ export default function WalletHistoryScreen() {
         }
 
         const res = await axios.post(
-          'https://backend-tarot.netlify.app/.netlify/functions/getWalletHistory',
+          'https://backend-tarot-app.netlify.app/.netlify/functions/get-recharge-history',
           { userId }
         );
 
-        const fetched = res.data?.history || [];
-
-        if (res.data?.success && Array.isArray(fetched)) {
-          setHistory(fetched);
+        if (Array.isArray(res.data?.history)) {
+          setHistory(res.data.history);
         } else {
-          Alert.alert('⚠️ Error', 'No history found on server');
+          Alert.alert('⚠️ Error', 'No recharge history found');
         }
       } catch (err) {
-        console.error('History fetch error:', err.message);
-        Alert.alert('❌ Error', 'Unable to load history');
+        console.error('❌ History fetch error:', err.message);
+        Alert.alert('❌ Error', 'Failed to load history');
       } finally {
         setLoading(false);
       }
@@ -51,20 +49,17 @@ export default function WalletHistoryScreen() {
   }, []);
 
   const renderItem = ({ item }) => {
-    const rawDate = item.createdAt || item.date;
-    const formattedDate = rawDate
-      ? new Date(rawDate).toLocaleString()
-      : 'Unknown date';
+    const date = item.createdAt || item.timestamp || item.date;
+    const formattedDate = date ? new Date(date).toLocaleString() : 'Unknown date';
+    const amount = item.amount ?? 0;
+    const method = item.method ?? 'Recharge';
 
     return (
       <View style={styles(isDark).item}>
-        <Ionicons
-          name="cash-outline"
-          size={22}
-          color={isDark ? '#f8e1c1' : '#2c2c4e'}
-        />
+        <Ionicons name="cash-outline" size={22} color={isDark ? '#f8e1c1' : '#2c2c4e'} />
         <View style={styles(isDark).itemTextWrapper}>
-          <Text style={styles(isDark).amount}>+{item.amount} RMB</Text>
+          <Text style={styles(isDark).amount}>+{amount} RMB</Text>
+          <Text style={styles(isDark).method}>{method}</Text>
           <Text style={styles(isDark).date}>{formattedDate}</Text>
         </View>
       </View>
@@ -120,11 +115,18 @@ const styles = (isDark) =>
     },
     itemTextWrapper: {
       marginLeft: 14,
+      flex: 1,
     },
     amount: {
       fontSize: 18,
       fontWeight: 'bold',
       color: isDark ? '#f8e1c1' : '#2c2c4e',
+    },
+    method: {
+      fontSize: 14,
+      fontStyle: 'italic',
+      color: isDark ? '#ccc' : '#555',
+      marginTop: 2,
     },
     date: {
       fontSize: 14,
