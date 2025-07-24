@@ -1,11 +1,7 @@
-# netlify.toml
 [build]
   command = "npm run build"
-  publish = "build"
+  publish = "web-build"
 
-[dev]
-  command = "expo start --web"
-  targetPort = 19006
 
 [[redirects]]
   from = "/*"
