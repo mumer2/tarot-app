@@ -7,6 +7,8 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 
 // Screens
 import HomeScreen from './screens/HomeScreen';
@@ -100,6 +102,7 @@ function AppNavigator() {
 
 export default function App() {
   return (
+    <SafeAreaProvider>
     <StripeProvider publishableKey="pk_test_51RZ5xeD1MsDkTkjjPUM3jGl7wZMhXlkiF4iGc5Jdey3SvcpmtmT2TcucP00QLjHd97wCI38RM35noeM1UO3GPqTa00YrvE9E0e">
     <ThemeProvider>
       <LanguageProvider>
@@ -109,5 +112,6 @@ export default function App() {
       </LanguageProvider>
     </ThemeProvider>
     </StripeProvider>
+    </SafeAreaProvider>
   );
 }
