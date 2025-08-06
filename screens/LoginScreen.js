@@ -26,54 +26,65 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isPhone = /^\d{10,15}$/.test(input);
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+  const handleLogin = async () => {
+    if (!input || !password) {
+      Alert.alert('❌ Error', 'Please enter email or phone and password.');
+      return;
+    }
 
- const handleLogin = async () => {
-  if (!input || !password) {
-    Alert.alert('❌ Error', 'Please enter email or phone and password.');
-    return;
-  }
+    const isPhone = /^\d{10,15}$/.test(input);
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
 
-  const isPhone = /^\d{10,15}$/.test(input);
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+    if (!isPhone && !isEmail) {
+      Alert.alert('❌ Error', 'Please enter a valid email or phone number.');
+      return;
+    }
 
-  if (!isPhone && !isEmail) {
-    Alert.alert('❌ Error', 'Please enter a valid email or phone number.');
-    return;
-  }
+    const payload = isPhone
+      ? { phone: input.trim(), password }
+      : { email: input.trim().toLowerCase(), password };
 
-  const payload = isPhone
-    ? { phone: input.trim(), password }
-    : { email: input.trim().toLowerCase(), password };
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        'https://backend-tarot-app.netlify.app/.netlify/functions/login',
+        payload
+      );
 
-  setLoading(true);
-  try {
-    const response = await axios.post(
-      'https://backend-tarot-app.netlify.app/.netlify/functions/login',
-      payload
-    );
+      const { token, user } = response.data;
 
-    const { token, user } = response.data;
+      // Save values to AsyncStorage
+      await AsyncStorage.setItem('@auth_token', token);
+      await AsyncStorage.setItem('@user_id', user._id);
+      await AsyncStorage.setItem('@user_email', user.email || '');
+      await AsyncStorage.setItem('@user_name', user.name || '');
+      await AsyncStorage.setItem('@user_points', String(user.points || 0));
+      await AsyncStorage.setItem('@referral_code', user.referralCode || '');
+      await AsyncStorage.setItem('@referred_by', user.referredBy || '');
 
-    await AsyncStorage.setItem('@auth_token', token);
-    await AsyncStorage.setItem('@user_id', user._id);
-    await AsyncStorage.setItem('@user_email', user.email || '');
-    await AsyncStorage.setItem('@user_name', user.name);
-    await AsyncStorage.setItem('@wallet_balance', String(user.balance || 0));
-    await AsyncStorage.setItem('@first_login', 'true');
+      // Update Auth Context
+      await login({
+        token,
+        user: {
+          name: user.name || '',
+          _id: user._id || '',
+          profilePic: user.profilePic || '',
+          points: user.points || 0,
+          referralCode: user.referralCode || '',
+          referredBy: user.referredBy || '',
+        },
+      });
 
-    await login(token);
-    navigation.replace('Welcome');
-  } catch (error) {
-    Alert.alert(
-      '❌ Login Failed',
-      error.response?.data?.message || 'Invalid credentials.'
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      navigation.replace('Welcome'); // or 'Home' based on your flow
+    } catch (error) {
+      Alert.alert(
+        '❌ Login Failed',
+        error.response?.data?.message || 'Invalid credentials.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -182,6 +193,192 @@ const styles = (isDark) =>
       fontWeight: 'bold',
     },
   });
+
+
+// import React, { useState, useContext } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Alert,
+//   KeyboardAvoidingView,
+//   Platform,
+//   ScrollView,
+// } from 'react-native';
+// import { useNavigation } from '@react-navigation/native';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { AuthContext } from '../context/AuthContext';
+// import { ThemeContext } from '../context/ThemeContext';
+// import axios from 'axios';
+
+// export default function LoginScreen() {
+//   const { login } = useContext(AuthContext);
+//   const { theme } = useContext(ThemeContext);
+//   const navigation = useNavigation();
+//   const isDark = theme === 'dark';
+
+//   const [input, setInput] = useState('');
+//   const [password, setPassword] = useState('');
+//   const [loading, setLoading] = useState(false);
+
+//   const isPhone = /^\d{10,15}$/.test(input);
+//   const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+
+//  const handleLogin = async () => {
+//   if (!input || !password) {
+//     Alert.alert('❌ Error', 'Please enter email or phone and password.');
+//     return;
+//   }
+
+//   const isPhone = /^\d{10,15}$/.test(input);
+//   const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+
+//   if (!isPhone && !isEmail) {
+//     Alert.alert('❌ Error', 'Please enter a valid email or phone number.');
+//     return;
+//   }
+
+//   const payload = isPhone
+//     ? { phone: input.trim(), password }
+//     : { email: input.trim().toLowerCase(), password };
+
+//   setLoading(true);
+//   try {
+//     const response = await axios.post(
+//       'https://backend-tarot-app.netlify.app/.netlify/functions/login',
+//       payload
+//     );
+
+//     const { token, user } = response.data;
+
+//     await AsyncStorage.setItem('@auth_token', token);
+//     await AsyncStorage.setItem('@user_id', user._id);
+//     await AsyncStorage.setItem('@user_email', user.email || '');
+//     await AsyncStorage.setItem('@user_name', user.name);
+//     await AsyncStorage.setItem('@wallet_balance', String(user.balance || 0));
+//     await AsyncStorage.setItem('@first_login', 'true');
+
+//     await login(token);
+//     navigation.replace('Welcome');
+//   } catch (error) {
+//     Alert.alert(
+//       '❌ Login Failed',
+//       error.response?.data?.message || 'Invalid credentials.'
+//     );
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+//   return (
+//     <KeyboardAvoidingView
+//       style={styles(isDark).container}
+//       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+//     >
+//       <ScrollView contentContainerStyle={styles(isDark).scroll}>
+//         <Text style={styles(isDark).title}>🔮 Login to Tarot Station</Text>
+
+//         <TextInput
+//           style={styles(isDark).input}
+//           placeholder="Email or Phone Number"
+//           placeholderTextColor={isDark ? '#aaa' : '#666'}
+//           keyboardType="email-address"
+//           autoCapitalize="none"
+//           value={input}
+//           onChangeText={setInput}
+//         />
+
+//         <TextInput
+//           style={styles(isDark).input}
+//           placeholder="Password"
+//           placeholderTextColor={isDark ? '#aaa' : '#666'}
+//           secureTextEntry
+//           value={password}
+//           onChangeText={setPassword}
+//         />
+
+//         <TouchableOpacity
+//           style={styles(isDark).loginButton}
+//           onPress={handleLogin}
+//           disabled={loading}
+//         >
+//           <Text style={styles(isDark).loginText}>
+//             {loading ? 'Logging in...' : 'Login'}
+//           </Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+//           <Text style={styles(isDark).linkText}>Forgot Password?</Text>
+//         </TouchableOpacity>
+
+//         <View style={styles(isDark).bottomRow}>
+//           <Text style={styles(isDark).bottomText}>Don't have an account?</Text>
+//           <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+//             <Text style={styles(isDark).signupLink}> Sign up</Text>
+//           </TouchableOpacity>
+//         </View>
+//       </ScrollView>
+//     </KeyboardAvoidingView>
+//   );
+// }
+
+// const styles = (isDark) =>
+//   StyleSheet.create({
+//     container: {
+//       flex: 1,
+//       backgroundColor: isDark ? '#1e1e1e' : '#fff',
+//     },
+//     scroll: {
+//       padding: 24,
+//       alignItems: 'center',
+//       justifyContent: 'center',
+//       flexGrow: 1,
+//     },
+//     title: {
+//       fontSize: 24,
+//       color: isDark ? '#f8e1c1' : '#2c2c4e',
+//       marginBottom: 40,
+//       fontWeight: 'bold',
+//     },
+//     input: {
+//       width: '100%',
+//       padding: 14,
+//       borderRadius: 10,
+//       backgroundColor: isDark ? '#2a2a2a' : '#f2f2f2',
+//       color: isDark ? '#fff' : '#000',
+//       marginBottom: 20,
+//     },
+//     loginButton: {
+//       backgroundColor: '#f8e1c1',
+//       paddingVertical: 14,
+//       borderRadius: 10,
+//       width: '100%',
+//       alignItems: 'center',
+//       marginBottom: 20,
+//     },
+//     loginText: {
+//       color: '#2c2c4e',
+//       fontWeight: 'bold',
+//       fontSize: 16,
+//     },
+//     linkText: {
+//       color: '#a88',
+//       marginBottom: 20,
+//     },
+//     bottomRow: {
+//       flexDirection: 'row',
+//       marginTop: 20,
+//     },
+//     bottomText: {
+//       color: isDark ? '#ccc' : '#444',
+//     },
+//     signupLink: {
+//       color: '#A26769',
+//       fontWeight: 'bold',
+//     },
+//   });
 
 
 // import React, { useState, useContext } from 'react';

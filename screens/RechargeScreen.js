@@ -56,8 +56,8 @@ export default function RechargeScreen() {
   }, [isFocused]);
 
   const handleWeChatH5Pay = async (amount) => {
-    if (!amount || isNaN(amount) || amount < 1) {
-      return Alert.alert('⚠️ Invalid amount', 'Please enter an amount ≥ 1 RMB.');
+    if (!amount || isNaN(amount) || amount < 10) {
+      return Alert.alert('⚠️ Invalid amount', 'Please enter an amount ≥ 6 RMB.');
     }
 
     try {
@@ -88,8 +88,8 @@ export default function RechargeScreen() {
   };
 
   const handlePaypalPay = async (amount) => {
-    if (!amount || isNaN(amount) || amount < 1) {
-      return Alert.alert('⚠️ Invalid amount', 'Please enter an amount ≥ 1 RMB.');
+    if (!amount || isNaN(amount) || amount < 10) {
+      return Alert.alert('⚠️ Invalid amount', 'Please enter an amount ≥ 6 RMB.');
     }
 
     try {
@@ -120,7 +120,7 @@ export default function RechargeScreen() {
   };
 
   const handleApplePay = async (amount) => {
-    if (!amount || isNaN(amount) || amount < 1) {
+    if (!amount || isNaN(amount) || amount < 10) {
       return Alert.alert('⚠️ Invalid amount', 'Please enter an amount ≥ 1 USD.');
     }
 
@@ -184,7 +184,7 @@ export default function RechargeScreen() {
         disabled={loading}
       >
         <Text style={[styles(isDark).buttonText, { color: '#fff' }]}>
-          PayPal {manualAmount || '...'} $
+          PayPal {manualAmount || '...'} RMB
         </Text>
       </TouchableOpacity>
 
@@ -194,7 +194,7 @@ export default function RechargeScreen() {
         disabled={loading}
       >
         <Text style={[styles(isDark).buttonText, { color: '#fff' }]}>
-           Apple Pay {manualAmount || '...'} $
+           Apple Pay {manualAmount || '...'} RMB
         </Text>
       </TouchableOpacity>
 
@@ -209,7 +209,7 @@ export default function RechargeScreen() {
 
       {loading && <ActivityIndicator size="large" color="#f8e1c1" style={{ marginTop: 20 }} />}
 
-      <Text style={styles(isDark).note}>💡 5 RMB = 1 minute of chat time with the Tarot AI.</Text>
+      <Text style={styles(isDark).note}>💡 6 RMB = 1 minute of chat time with the Tarot AI.</Text>
     </ScrollView>
   );
 }

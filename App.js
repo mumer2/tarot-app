@@ -29,6 +29,11 @@ import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import WalletHistoryScreen from './screens/WalletHistoryScreen';
 import PaypalSuccess from './screens/PaypalSuccess';
+import EditProfileScreen from './screens/EditProfileScreen';
+import CoinsRewardScreen from './screens/CoinsRewardScreen';
+import ZodiacSelectionScreen from './screens/ZodiacSelectionScreen';
+import TarotGame from './screens/TarotGame';
+import DailyCheckInScreen from './screens/DailyCheckInScreen';
 
 
 
@@ -79,20 +84,25 @@ function AppNavigator() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
 
         {/* Main App Screens */}
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Tarot Station' }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Tarot Station'}} />
         <Stack.Screen name="Horoscope" component={HoroscopeScreen} options={{ title: 'Horoscope' }} />
         <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Tarot Chat' }} />
         <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
         <Stack.Screen name="MyBot" component={MyBotScreen} options={{ title: 'My Bot' }} />
         <Stack.Screen name="Recharge" component={RechargeScreen} options={{ title: 'Recharge' }} />
         <Stack.Screen name="WalletHistory" component={WalletHistoryScreen} options={{ title: 'Wallet Hostory' }} />
+<Stack.Screen name="ZodiacSelection" component={ZodiacSelectionScreen} options={{ title: 'Zodiac Selection' }} />
+<Stack.Screen name="TarotGame" component={TarotGame} options={{ title: 'Fortune Teller' }}/>
+<Stack.Screen name="DailyCheckIn" component={DailyCheckInScreen} options={{ title: 'Daily Check In' }}/>
+
 
         <Stack.Screen name="History" component={HistoryScreen} options={{ title: 'Chat History' }} />
         <Stack.Screen name="SessionView" component={SessionView} options={{ title: 'Chat History View' }} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ title: 'Privacy Policy' }} />
         <Stack.Screen name="Terms" component={TermsScreen} options={{ title: 'Terms of Service' }} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: 'Reset Password' }} />
-
+<Stack.Screen name="CoinsReward" component={CoinsRewardScreen} />
         <Stack.Screen name="Alipay" component={AlipayScreen} />
         <Stack.Screen name="PaypalSuccess" component={PaypalSuccess} />
       </Stack.Navigator>

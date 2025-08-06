@@ -1,0 +1,68 @@
+[
+  {
+    "name": "The Chariot",
+    "image": "chariot.png",
+    "description": "Determination, willpower, control, success."
+  },
+  {
+    "name": "The Death",
+    "image": "death.png",
+    "description": "Transformation, endings, change, transition."
+  },
+  {
+    "name": "The Devil",
+    "image": "devil.png",
+    "description": "Temptation, addiction, materialism, playfulness."
+  },
+    {
+        "name": "The Fool",
+        "image": "fool.png",
+        "description": "New beginnings, innocence, spontaneity, adventure."
+    },
+    {
+        "name": "The Empress",
+        "image": "empress.png",
+        "description": "Nurturing, abundance, fertility, nature."
+    },
+    {
+        "name": "The Emperor",
+        "image": "emperor.png",
+        "description": "Authority, structure, control, fatherhood."
+    },
+    {
+        "name": "The Fortune",
+        "image": "fortune.png",
+        "description": "Luck, destiny, fortune, cycles."
+    },
+    {        "name": "The Hanged",
+        "image": "hanged.png",
+        "description": "Sacrifice, release, new perspectives, letting go."
+    },
+    {
+        "name": "The Hermit",
+        "image": "hermit.png",
+        "description": "Introspection, solitude, inner guidance, wisdom."
+    },
+    {
+        "name": "The Hierophant",
+        "image": "hierophant.png",
+        "description": "Tradition, conformity, spiritual guidance, education."
+    },
+    {
+        "name": "The judgement",
+        "image": "judgement.png",
+        "description": "Rebirth, inner calling, absolution, reflection."
+    },
+    {
+        "name": "The Lovers",
+        "image": "lovers.png",
+        "description": "Love, harmony, relationships, choices."
+    },
+    {
+        "name": "The justice",
+        "image": "justice.png",
+        "description": "Fairness, truth, law, balance."
+    }
+
+
+]
