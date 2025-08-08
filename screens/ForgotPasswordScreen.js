@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { ThemeContext } from "../context/ThemeContext";
 import axios from "axios";
 import Icon from "react-native-vector-icons/Ionicons";
+import i18n from "../utils/i18n"; // make sure this is correctly imported
 
 export default function ForgotPasswordScreen() {
   const { theme } = useContext(ThemeContext);
@@ -29,12 +30,12 @@ export default function ForgotPasswordScreen() {
     const trimmed = input.trim();
 
     if (!trimmed) {
-      Alert.alert("❌ Error", "Please enter your email or phone number.");
+      Alert.alert(i18n.t("error"), i18n.t("enterEmailOrPhone"));
       return;
     }
 
     if (!isEmail && !isPhone) {
-      Alert.alert("❌ Error", "Please enter a valid email or phone number.");
+      Alert.alert(i18n.t("error"), i18n.t("invalidEmailOrPhone"));
       return;
     }
 
@@ -50,10 +51,7 @@ export default function ForgotPasswordScreen() {
       );
 
       if (response.data?.success && response.data?.token) {
-        Alert.alert(
-          "📩 Code Sent",
-          "Check your inbox or SMS for the reset code."
-        );
+        Alert.alert(i18n.t("codeSent"), i18n.t("checkInboxOrSms"));
 
         navigation.navigate("ResetPassword", {
           email: response.data.email || "",
@@ -62,15 +60,15 @@ export default function ForgotPasswordScreen() {
         });
       } else {
         Alert.alert(
-          "❌ Error",
-          response.data?.message || "Failed to send reset code."
+          i18n.t("error"),
+          response.data?.message || i18n.t("sendResetFailed")
         );
       }
     } catch (error) {
       console.error("Reset error:", error);
       Alert.alert(
-        "❌ Error",
-        error.response?.data?.message || "An error occurred. Try again later."
+        i18n.t("error"),
+        error.response?.data?.message || i18n.t("generalError")
       );
     } finally {
       setLoading(false);
@@ -79,10 +77,10 @@ export default function ForgotPasswordScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles(isDark).container}>
-      <Text style={styles(isDark).title}>🔑 Forgot Password</Text>
+      <Text style={styles(isDark).title}>🔑 {i18n.t("forgotPassword")}</Text>
 
       <TextInput
-        placeholder="Enter your email or phone number"
+        placeholder={i18n.t("enterEmailOrPhone")}
         placeholderTextColor="#999"
         style={styles(isDark).input}
         keyboardType="default"
@@ -99,14 +97,18 @@ export default function ForgotPasswordScreen() {
         {loading ? (
           <ActivityIndicator color="#2c2c4e" />
         ) : (
-          <Text style={styles(isDark).buttonText}>Send Reset Code</Text>
+          <Text style={styles(isDark).buttonText}>
+            {i18n.t("sendResetCode")}
+          </Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Icon name="arrow-back" size={20} color={isDark ? "#aaa" : "#555"} />
-          <Text style={[styles(isDark).link, { marginLeft: 6 }]}>Back</Text>
+          <Text style={[styles(isDark).link, { marginLeft: 6 }]}>
+            {i18n.t("back")}
+          </Text>
         </View>
       </TouchableOpacity>
     </ScrollView>

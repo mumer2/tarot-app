@@ -6,6 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '../context/ThemeContext';
@@ -34,27 +37,26 @@ export default function MyBotScreen({ navigation }) {
 
   const saveBot = async () => {
     if (!name.trim() || !style.trim()) {
-      Alert.alert('Missing Info', 'Please fill both name and style.');
+      Alert.alert(i18n.t('missingInfo'), i18n.t('fillNameAndStyle'));
       return;
     }
 
     if (hasSetBot) {
-      // Deduct 5 RMB from server wallet
       const balanceStr = await AsyncStorage.getItem('@wallet_balance');
       const currentBalance = parseFloat(balanceStr) || 0;
 
       if (currentBalance < 5) {
-        Alert.alert('Insufficient Balance', 'You need at least 5 RMB in your wallet to update the bot.');
+        Alert.alert(i18n.t('insufficientBalance'), i18n.t('need5RMB'));
         return;
       }
 
       Alert.alert(
-        'Change Personality',
-        'You can only set this once for free. Pay 5 RMB to change it?',
+        i18n.t('changePersonality'),
+        i18n.t('pay5RMBConfirm'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: i18n.t('cancel'), style: 'cancel' },
           {
-            text: 'Pay 5 RMB',
+            text: i18n.t('pay5RMB'),
             onPress: async () => {
               const success = await deductBalance(5);
               if (success) {
@@ -65,8 +67,7 @@ export default function MyBotScreen({ navigation }) {
         ]
       );
     } else {
-      // First time is free
-      doSave();
+      doSave(); // Free first time
     }
   };
 
@@ -74,7 +75,7 @@ export default function MyBotScreen({ navigation }) {
     try {
       const userId = await AsyncStorage.getItem('@user_id');
       if (!userId) {
-        Alert.alert('Missing User ID');
+        Alert.alert(i18n.t('error'), i18n.t('missingUserId'));
         return false;
       }
 
@@ -87,12 +88,12 @@ export default function MyBotScreen({ navigation }) {
         await AsyncStorage.setItem('@wallet_balance', res.data.balance.toString());
         return true;
       } else {
-        Alert.alert('❌ Error', res.data.error || 'Failed to deduct balance');
+        Alert.alert(i18n.t('error'), res.data.error || i18n.t('deductFailed'));
         return false;
       }
     } catch (err) {
       console.error('❌ Deduct error:', err.message);
-      Alert.alert('❌ Error', err.message || 'Unexpected deduction error');
+      Alert.alert(i18n.t('error'), err.message || i18n.t('unexpectedError'));
       return false;
     }
   };
@@ -101,36 +102,41 @@ export default function MyBotScreen({ navigation }) {
     const data = { name, style };
     await AsyncStorage.setItem('@tarot_bot', JSON.stringify(data));
     setHasSetBot(true);
-    Alert.alert('Saved', 'Your bot personality has been saved.');
+    Alert.alert(i18n.t('saved'), i18n.t('botSaved'));
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? '#1e1e1e' : '#ffffff', padding: 20 }}>
-      <Text style={styles.title}>🧙‍♀️ {i18n.t('customizeYourTarotChat')}</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: isDark ? '#1e1e1e' : '#ffffff' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={{ padding: 20, flexGrow: 1 }}>
+        <Text style={styles.title}>🧙‍♀️ {i18n.t('customizeYourTarotChat')}</Text>
 
-      <Text style={styles.label}>Bot Name:</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. Mystic Luna"
-        placeholderTextColor="#888"
-        value={name}
-        onChangeText={setName}
-      />
+        <Text style={styles.label}>{i18n.t('botName')}:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder={i18n.t('botNamePlaceholder')}
+          placeholderTextColor="#888"
+          value={name}
+          onChangeText={setName}
+        />
 
-      <Text style={styles.label}>Bot Style / Personality:</Text>
-      <TextInput
-        style={[styles.input, { height: 100 }]}
-        multiline
-        placeholder="e.g. Mysterious, poetic, wise like a fortune teller..."
-        placeholderTextColor="#888"
-        value={style}
-        onChangeText={setStyle}
-      />
+        <Text style={styles.label}>{i18n.t('botStyle')}:</Text>
+        <TextInput
+          style={[styles.input, { height: 100 }]}
+          multiline
+          placeholder={i18n.t('botStylePlaceholder')}
+          placeholderTextColor="#888"
+          value={style}
+          onChangeText={setStyle}
+        />
 
-      <TouchableOpacity style={styles.saveButton} onPress={saveBot}>
-        <Text style={styles.saveText}>Save Bot</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.saveButton} onPress={saveBot}>
+          <Text style={styles.saveText}>{i18n.t('saveBot')}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -167,6 +173,177 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+
+// import React, { useState, useEffect, useContext } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   StyleSheet,
+//   TouchableOpacity,
+//   Alert,
+// } from 'react-native';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { ThemeContext } from '../context/ThemeContext';
+// import i18n from '../utils/i18n';
+// import axios from 'axios';
+
+// export default function MyBotScreen({ navigation }) {
+//   const [name, setName] = useState('');
+//   const [style, setStyle] = useState('');
+//   const [hasSetBot, setHasSetBot] = useState(false);
+//   const { theme } = useContext(ThemeContext);
+//   const isDark = theme === 'dark';
+
+//   useEffect(() => {
+//     const loadBot = async () => {
+//       const saved = await AsyncStorage.getItem('@tarot_bot');
+//       if (saved) {
+//         const parsed = JSON.parse(saved);
+//         setName(parsed.name);
+//         setStyle(parsed.style);
+//         setHasSetBot(true);
+//       }
+//     };
+//     loadBot();
+//   }, []);
+
+//   const saveBot = async () => {
+//     if (!name.trim() || !style.trim()) {
+//       Alert.alert('Missing Info', 'Please fill both name and style.');
+//       return;
+//     }
+
+//     if (hasSetBot) {
+//       // Deduct 5 RMB from server wallet
+//       const balanceStr = await AsyncStorage.getItem('@wallet_balance');
+//       const currentBalance = parseFloat(balanceStr) || 0;
+
+//       if (currentBalance < 5) {
+//         Alert.alert('Insufficient Balance', 'You need at least 5 RMB in your wallet to update the bot.');
+//         return;
+//       }
+
+//       Alert.alert(
+//         'Change Personality',
+//         'You can only set this once for free. Pay 5 RMB to change it?',
+//         [
+//           { text: 'Cancel', style: 'cancel' },
+//           {
+//             text: 'Pay 5 RMB',
+//             onPress: async () => {
+//               const success = await deductBalance(5);
+//               if (success) {
+//                 doSave();
+//               }
+//             },
+//           },
+//         ]
+//       );
+//     } else {
+//       // First time is free
+//       doSave();
+//     }
+//   };
+
+//   const deductBalance = async (amount) => {
+//     try {
+//       const userId = await AsyncStorage.getItem('@user_id');
+//       if (!userId) {
+//         Alert.alert('Missing User ID');
+//         return false;
+//       }
+
+//       const res = await axios.post(
+//         'https://backend-tarot-app.netlify.app/.netlify/functions/deduct-balance',
+//         { userId, amount }
+//       );
+
+//       if (res.data?.balance !== undefined) {
+//         await AsyncStorage.setItem('@wallet_balance', res.data.balance.toString());
+//         return true;
+//       } else {
+//         Alert.alert('❌ Error', res.data.error || 'Failed to deduct balance');
+//         return false;
+//       }
+//     } catch (err) {
+//       console.error('❌ Deduct error:', err.message);
+//       Alert.alert('❌ Error', err.message || 'Unexpected deduction error');
+//       return false;
+//     }
+//   };
+
+//   const doSave = async () => {
+//     const data = { name, style };
+//     await AsyncStorage.setItem('@tarot_bot', JSON.stringify(data));
+//     setHasSetBot(true);
+//     Alert.alert('Saved', 'Your bot personality has been saved.');
+//   };
+
+//   return (
+//     <View style={{ flex: 1, backgroundColor: isDark ? '#1e1e1e' : '#ffffff', padding: 20 }}>
+//       <Text style={styles.title}>🧙‍♀️ {i18n.t('customizeYourTarotChat')}</Text>
+
+//       <Text style={styles.label}>Bot Name:</Text>
+//       <TextInput
+//         style={styles.input}
+//         placeholder="e.g. Mystic Luna"
+//         placeholderTextColor="#888"
+//         value={name}
+//         onChangeText={setName}
+//       />
+
+//       <Text style={styles.label}>Bot Style / Personality:</Text>
+//       <TextInput
+//         style={[styles.input, { height: 100 }]}
+//         multiline
+//         placeholder="e.g. Mysterious, poetic, wise like a fortune teller..."
+//         placeholderTextColor="#888"
+//         value={style}
+//         onChangeText={setStyle}
+//       />
+
+//       <TouchableOpacity style={styles.saveButton} onPress={saveBot}>
+//         <Text style={styles.saveText}>Save Bot</Text>
+//       </TouchableOpacity>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   title: {
+//     fontSize: 24,
+//     color: '#f8e1c1',
+//     marginBottom: 20,
+//     fontWeight: 'bold',
+//     textAlign: 'center',
+//   },
+//   label: {
+//     color: '#ccc',
+//     marginBottom: 6,
+//     fontSize: 16,
+//   },
+//   input: {
+//     backgroundColor: '#2d2b4e',
+//     color: '#fff',
+//     padding: 12,
+//     borderRadius: 10,
+//     marginBottom: 20,
+//     fontSize: 16,
+//   },
+//   saveButton: {
+//     backgroundColor: '#f8e1c1',
+//     paddingVertical: 12,
+//     borderRadius: 20,
+//     alignItems: 'center',
+//   },
+//   saveText: {
+//     color: '#2c2c4e',
+//     fontWeight: 'bold',
+//     fontSize: 16,
+//   },
+// });
 
 
 // import React, { useState, useEffect } from 'react';

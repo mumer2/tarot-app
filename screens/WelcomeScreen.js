@@ -5,13 +5,17 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  useColorScheme,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '../context/ThemeContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import i18n from '../utils/i18n';
 
 export default function WelcomeScreen({ navigation }) {
+  const scheme = useColorScheme(); // fallback if no theme in context
   const { theme } = useContext(ThemeContext);
-  const isDark = theme === 'dark';
+  const isDark = (theme || scheme) === 'dark';
 
   const handleStart = async () => {
     try {
@@ -23,28 +27,31 @@ export default function WelcomeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles(isDark).container}>
-      <Image
-        source={require('../assets/WelcomeLogo.png')} // 👈 replace with your logo path
-        style={styles(isDark).image}
-        resizeMode="contain"
-      />
-      <Text style={styles(isDark).title}>🔮 Welcome to Tarot Station</Text>
-      <Text style={styles(isDark).subtitle}>
-        Discover your fate, explore your future, and connect with your inner self.
-      </Text>
-      <TouchableOpacity style={styles(isDark).button} onPress={handleStart}>
-        <Text style={styles(isDark).buttonText}>Get Started</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles(isDark).safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <View style={styles(isDark).container}>
+        <Image
+          source={require('../assets/WelcomeLogo.png')}
+          style={styles(isDark).image}
+          resizeMode="contain"
+        />
+        <Text style={styles(isDark).title}>🔮 {i18n.t('welcome.title')}</Text>
+        <Text style={styles(isDark).subtitle}>{i18n.t('welcome.subtitle')}</Text>
+        <TouchableOpacity style={styles(isDark).button} onPress={handleStart}>
+          <Text style={styles(isDark).buttonText}>{i18n.t('welcome.button')}</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = (isDark) =>
   StyleSheet.create({
-    container: {
+    safeArea: {
       flex: 1,
       backgroundColor: isDark ? '#000' : '#f9f9f9',
+    },
+    container: {
+      flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
       padding: 20,

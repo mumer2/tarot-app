@@ -6,6 +6,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
+import i18n from '../utils/i18n'; // import your i18n instance
 
 export default function EditProfileScreen() {
   const { theme } = useContext(ThemeContext);
@@ -32,16 +33,16 @@ export default function EditProfileScreen() {
 
   const saveProfile = async () => {
     if (!name.trim()) {
-      Alert.alert('❌ Error', 'Name cannot be empty');
+      Alert.alert(i18n.t('error'), i18n.t('nameCannotBeEmpty'));
       return;
     }
 
     setLoading(true);
     try {
       await updateProfile({ name: name.trim(), profilePic: image });
-      Alert.alert('✅', 'Profile updated!');
+      Alert.alert('✅', i18n.t('profileUpdated'));
     } catch (err) {
-      Alert.alert('❌', 'Failed to save');
+      Alert.alert('❌', i18n.t('failedToSave'));
     } finally {
       setLoading(false);
     }
@@ -49,20 +50,20 @@ export default function EditProfileScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles(isDark).container}>
-      <Text style={styles(isDark).title}>Edit Profile</Text>
+      <Text style={styles(isDark).title}>{i18n.t('editProfile')}</Text>
 
       <TouchableOpacity onPress={pickImage} style={styles(isDark).avatarWrapper}>
         <Image
           source={image ? { uri: image } : require('../assets/avatar.png')}
           style={styles(isDark).avatar}
         />
-        <Text style={styles(isDark).changeText}>Change Picture</Text>
+        <Text style={styles(isDark).changeText}>{i18n.t('changePicture')}</Text>
       </TouchableOpacity>
 
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder="Your name"
+        placeholder={i18n.t('yourName')}
         placeholderTextColor="#888"
         style={styles(isDark).input}
       />
@@ -71,7 +72,7 @@ export default function EditProfileScreen() {
         {loading ? (
           <ActivityIndicator color="#000" />
         ) : (
-          <Text style={styles(isDark).buttonText}>Save</Text>
+          <Text style={styles(isDark).buttonText}>{i18n.t('save')}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -84,12 +85,22 @@ const styles = (isDark) => StyleSheet.create({
     backgroundColor: isDark ? '#1e1e1e' : '#fff',
     alignItems: 'center',
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: isDark ? '#f8e1c1' : '#2c2c4e', marginBottom: 20 },
+  title: {
+    fontSize: 24, fontWeight: 'bold',
+    color: isDark ? '#f8e1c1' : '#2c2c4e', marginBottom: 20
+  },
   avatarWrapper: { alignItems: 'center', marginBottom: 20 },
-  avatar: { width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#aaa' },
-  changeText: { marginTop: 10, color: isDark ? '#aaa' : '#444' },
+  avatar: {
+    width: 120, height: 120, borderRadius: 60,
+    borderWidth: 2, borderColor: '#aaa'
+  },
+  changeText: {
+    marginTop: 10,
+    color: isDark ? '#aaa' : '#444'
+  },
   input: {
-    width: '100%', backgroundColor: isDark ? '#333' : '#eee',
+    width: '100%',
+    backgroundColor: isDark ? '#333' : '#eee',
     color: isDark ? '#fff' : '#000',
     padding: 12, borderRadius: 10, marginBottom: 20,
   },
@@ -98,5 +109,8 @@ const styles = (isDark) => StyleSheet.create({
     paddingVertical: 14, borderRadius: 20,
     alignItems: 'center', width: '100%',
   },
-  buttonText: { fontSize: 16, fontWeight: 'bold', color: '#2c2c4e' },
+  buttonText: {
+    fontSize: 16, fontWeight: 'bold',
+    color: '#2c2c4e'
+  },
 });

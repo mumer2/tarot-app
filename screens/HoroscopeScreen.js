@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { ThemeContext } from '../context/ThemeContext';
+import i18n from '../utils/i18n'; // adjust path as necessary
 
 const signs = [
   { name: 'Aries', emoji: '♈', color: '#FF6B6B', luckyColor: 'Red', luckyNumber: 9 },
@@ -33,14 +34,13 @@ const HoroscopeScreen = () => {
   const [period, setPeriod] = useState('daily'); // daily | weekly | monthly
   const [horoscope, setHoroscope] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [luckyColor, setLuckyColor] = useState('');
   const [luckyNumber, setLuckyNumber] = useState('');
 
   const fetchHoroscope = async (sign, duration) => {
     setLoading(true);
     try {
-       const res = await axios.get(
+      const res = await axios.get(
         `https://api.api-ninjas.com/v1/horoscope?zodiac=${sign.toLowerCase()}`,
         {
           headers: {
@@ -55,7 +55,7 @@ const HoroscopeScreen = () => {
       setLuckyNumber(current?.luckyNumber || 'N/A');
     } catch (err) {
       console.error(err);
-      setHoroscope('⚠️ Unable to fetch horoscope. Try again later.');
+      setHoroscope(i18n.t('fetchingError'));
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,9 @@ const HoroscopeScreen = () => {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: isDark ? "#1e1e1e" : "#f8f8f8", padding: 16 }}>
-      <Text style={[styles.title, { color: isDark ? '#f8e1c1' : '#333' }]}>🔮 Horoscope</Text>
+      <Text style={[styles.title, { color: isDark ? '#f8e1c1' : '#333' }]}>
+        {i18n.t('horoscopeTitle')}
+      </Text>
 
       {/* Period Selector */}
       <View style={styles.periodSelector}>
@@ -81,7 +83,7 @@ const HoroscopeScreen = () => {
             onPress={() => setPeriod(p)}
           >
             <Text style={{ color: period === p ? '#000' : '#fff', fontWeight: '600' }}>
-              {p.toUpperCase()}
+              {i18n.t(p)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -89,7 +91,7 @@ const HoroscopeScreen = () => {
 
       {/* Sign Selector */}
       <Text style={[styles.subtitle, { color: isDark ? '#ccc' : '#555' }]}>
-        Select Your Zodiac Sign:
+        {i18n.t('selectSign')}
       </Text>
       <View style={styles.signsContainer}>
         {signs.map(({ name, emoji, color }) => (
@@ -118,10 +120,10 @@ const HoroscopeScreen = () => {
               {horoscope}
             </Text>
             <Text style={[styles.metaText, { color: isDark ? '#f8e1c1' : '#444' }]}>
-              🎨 Lucky Color: {luckyColor}
+              {i18n.t('luckyColor')}: {luckyColor}
             </Text>
             <Text style={[styles.metaText, { color: isDark ? '#f8e1c1' : '#444' }]}>
-              🔢 Lucky Number: {luckyNumber}
+              {i18n.t('luckyNumber')}: {luckyNumber}
             </Text>
           </>
         )}
@@ -198,6 +200,7 @@ const styles = StyleSheet.create({
 });
 
 export default HoroscopeScreen;
+
 
 // import React, { useState, useEffect } from 'react';
 // import {

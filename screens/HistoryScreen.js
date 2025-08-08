@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,24 +11,23 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
-import { ThemeContext } from '../context/ThemeContext'; 
+import { ThemeContext } from '../context/ThemeContext';
+import i18n from '../utils/i18n'; // make sure this points to your i18n.js
 
 export default function HistoryScreen() {
   const [sessions, setSessions] = useState([]);
   const [search, setSearch] = useState('');
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
-const isDark = theme === 'dark';
+  const isDark = theme === 'dark';
 
-  // Load sessions from AsyncStorage
   useEffect(() => {
     const loadSessions = async () => {
       try {
         const raw = await AsyncStorage.getItem('@chat_sessions');
         if (raw) {
           const parsed = JSON.parse(raw);
-          setSessions(parsed.reverse()); // most recent first
+          setSessions(parsed.reverse());
         }
       } catch (e) {
         console.error('Failed to load sessions:', e);
@@ -37,12 +36,10 @@ const isDark = theme === 'dark';
     loadSessions();
   }, []);
 
-  // Navigate to a session's view
   const handleOpen = (sessionId) => {
     navigation.navigate('SessionView', { sessionId });
   };
 
-  // Delete a session
   const handleDelete = async (sessionId) => {
     try {
       const updated = sessions.filter((s) => s.id !== sessionId);
@@ -59,25 +56,27 @@ const isDark = theme === 'dark';
   );
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.title}>{item.title}</Text>
+    <View style={[styles.card, { backgroundColor: isDark ? '#2d2b4e' : '#eee' }]}>
+      <Text style={[styles.title, { color: isDark ? '#fff' : '#000' }]}>{item.title}</Text>
       <View style={styles.actions}>
         <TouchableOpacity onPress={() => handleOpen(item.id)}>
-          <Text style={styles.actionText}>View</Text>
+          <Text style={[styles.actionText, { color: isDark ? '#f8e1c1' : '#333' }]}>
+            {i18n.t('view')}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() =>
-            Alert.alert('Delete Session', 'Are you sure?', [
-              { text: 'Cancel' },
+            Alert.alert(i18n.t('deleteSession'), i18n.t('areYouSure'), [
+              { text: i18n.t('cancel') },
               {
-                text: 'Delete',
+                text: i18n.t('delete'),
                 onPress: () => handleDelete(item.id),
                 style: 'destructive',
               },
             ])
           }
         >
-          <Text style={[styles.actionText, { color: '#ff6961' }]}>Delete</Text>
+          <Text style={[styles.actionText, { color: '#ff6961' }]}>{i18n.t('delete')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -85,13 +84,15 @@ const isDark = theme === 'dark';
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? '#1e1e1e' : '#ffffff', padding: 16 }}>
-      <Text style={styles.header}>📜 Chat History</Text>
+      <Text style={[styles.header, { color: isDark ? '#f8e1c1' : '#333' }]}>
+        📜 {i18n.t('chatHistory')}
+      </Text>
 
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: isDark ? '#3b3857' : '#ddd' }]}>
         <Ionicons name="search" size={20} color="#aaa" style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
-          placeholder="Search by topic..."
+          style={[styles.searchInput, { color: isDark ? '#fff' : '#000' }]}
+          placeholder={i18n.t('searchByTopic')}
           placeholderTextColor="#aaa"
           value={search}
           onChangeText={setSearch}
@@ -99,7 +100,9 @@ const isDark = theme === 'dark';
       </View>
 
       {filtered.length === 0 ? (
-        <Text style={styles.empty}>No sessions found.</Text>
+        <Text style={[styles.empty, { color: isDark ? '#aaa' : '#666' }]}>
+          {i18n.t('noSessions')}
+        </Text>
       ) : (
         <FlatList
           data={filtered}
@@ -115,18 +118,15 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#f8e1c1',
     textAlign: 'center',
     marginBottom: 10,
   },
   card: {
-    backgroundColor: '#2d2b4e',
     padding: 14,
     borderRadius: 10,
     marginBottom: 12,
   },
   title: {
-    color: '#fff',
     fontSize: 16,
     marginBottom: 8,
   },
@@ -135,11 +135,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionText: {
-    color: '#f8e1c1',
     fontWeight: 'bold',
   },
   empty: {
-    color: '#aaa',
     textAlign: 'center',
     marginTop: 40,
     fontSize: 16,
@@ -147,7 +145,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3b3857',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -155,7 +152,6 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: '#fff',
     paddingLeft: 6,
   },
   searchIcon: {

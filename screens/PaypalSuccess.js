@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18n from '../utils/i18n';
 
 export default function PaypalSuccess({ route, navigation }) {
   const { orderId } = route.params || {};
@@ -9,7 +10,7 @@ export default function PaypalSuccess({ route, navigation }) {
     if (orderId) {
       captureOrder(orderId);
     } else {
-      Alert.alert('Missing order ID');
+      Alert.alert(i18n.t('missingOrderId'));
     }
   }, [orderId]);
 
@@ -31,21 +32,24 @@ export default function PaypalSuccess({ route, navigation }) {
           { amount, createdAt: new Date().toISOString(), method: 'PayPal' }
         ]));
 
-        Alert.alert('✅ Payment Success', `Wallet recharged with ${amount} RMB`);
+        Alert.alert(
+          i18n.t('paymentSuccessTitle'),
+          i18n.t('walletRecharged', { amount })
+        );
         navigation.replace('Recharge');
       } else {
-        Alert.alert('⚠️ Payment Failed', data.error || 'Unknown error');
+        Alert.alert(i18n.t('paymentFailedTitle'), data.error || i18n.t('unknownError'));
       }
     } catch (err) {
       console.error('Capture Error:', err);
-      Alert.alert('❌ Error', err.message || 'Something went wrong');
+      Alert.alert(i18n.t('error'), err.message || i18n.t('somethingWentWrong'));
     }
   };
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <ActivityIndicator size="large" />
-      <Text style={{ marginTop: 20 }}>Verifying PayPal payment...</Text>
+      <Text style={{ marginTop: 20 }}>{i18n.t('verifyingPaypal')}</Text>
     </View>
   );
 }

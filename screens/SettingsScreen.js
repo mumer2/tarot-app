@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import {
   View,
   Text,
@@ -12,37 +12,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../utils/i18n';
 import { ThemeContext } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
+import { LanguageContext } from '../context/LanguageContext';
 import { useNavigation } from '@react-navigation/native';
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const { logout } = useContext(AuthContext);
+  const { changeLanguage, language } = useContext(LanguageContext);
   const navigation = useNavigation();
 
-  const [selectedLang, setSelectedLang] = useState(i18n.locale.startsWith('zh') ? 'zh' : 'en');
+  i18n.locale = language;
+  
   const isDarkMode = theme === 'dark';
-
-  useEffect(() => {
-    const loadLang = async () => {
-      const lang = await AsyncStorage.getItem('@lang');
-      if (lang) {
-        i18n.locale = lang;
-        setSelectedLang(lang);
-      }
-    };
-    loadLang();
-  }, []);
-
-  const changeLanguage = async (lang) => {
-    try {
-      i18n.locale = lang;
-      await AsyncStorage.setItem('@lang', lang);
-      setSelectedLang(lang);
-      Alert.alert('✅', `${i18n.t('language')} updated. Restart app to apply.`);
-    } catch (e) {
-      Alert.alert('❌', 'Language change failed.');
-    }
-  };
+  const selectedLang = language;
 
   const clearChatHistory = async () => {
     Alert.alert('⚠️ Confirm', i18n.t('confirmClearChat'), [
@@ -69,31 +51,27 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      '⚠️ Confirm Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-              setTimeout(() => {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Login' }],
-                });
-              }, 100);
-            } catch (err) {
-              console.error('Logout error:', err);
-              Alert.alert('❌ Logout Failed', 'Please try again.');
-            }
-          },
+    Alert.alert('⚠️ Confirm Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+            setTimeout(() => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+            }, 100);
+          } catch (err) {
+            console.error('Logout error:', err);
+            Alert.alert('❌ Logout Failed', 'Please try again.');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const styles = getStyles(theme);
@@ -108,13 +86,19 @@ export default function SettingsScreen() {
         <View style={styles.langRow}>
           <TouchableOpacity
             style={[styles.langButton, selectedLang === 'en' && styles.selectedButton]}
-            onPress={() => changeLanguage('en')}
+            onPress={() => {
+              changeLanguage('en');
+              Alert.alert('✅', `${i18n.t('language')} updated.`);
+            }}
           >
             <Text style={styles.buttonText}>English</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.langButton, selectedLang === 'zh' && styles.selectedButton]}
-            onPress={() => changeLanguage('zh')}
+            onPress={() => {
+              changeLanguage('zh');
+              Alert.alert('✅', `${i18n.t('language')} 已更新。`);
+            }}
           >
             <Text style={styles.buttonText}>中文</Text>
           </TouchableOpacity>
@@ -135,7 +119,7 @@ export default function SettingsScreen() {
           style={styles.itemButton}
           onPress={() => navigation.navigate('EditProfile')}
         >
-          <Text style={styles.itemText}>👤 Edit Profile</Text>
+          <Text style={styles.itemText}>👤 {i18n.t('editProfile')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.itemButton} onPress={resetBot}>
@@ -249,7 +233,6 @@ const getStyles = (theme) => {
     },
   });
 };
-
 
 
 // import React, { useContext, useEffect, useState } from 'react';
