@@ -17,6 +17,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import i18n from "../utils/i18n";
 import { ThemeContext } from "../context/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
+import { Modal } from "react-native";
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState("");
@@ -27,6 +29,13 @@ export default function ChatScreen() {
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [sessionId, setSessionId] = useState("");
+  const [showFreeCardOffer, setShowFreeCardOffer] = useState(false);
+   const navigation = useNavigation(); // ✅ so navigation works
+  const [userZodiac, setUserZodiac] = useState(null); // ✅ store zodiac
+const [lastClaimTime, setLastClaimTime] = useState(null);
+  const [meetChatCondition, setMeetChatCondition] = useState(false);
+  const [chatTime, setChatTime] = useState(0); // minutes chatting
+
   const flatListRef = useRef();
 
   const { theme } = useContext(ThemeContext);
@@ -95,6 +104,40 @@ export default function ChatScreen() {
     }, [])
   );
 
+    useEffect(() => {
+    // Load user's zodiac from storage or API
+    AsyncStorage.getItem("@user_zodiac").then(zodiac => {
+      if (zodiac) setUserZodiac(zodiac);
+    });
+  }, []);
+
+    // Example: Simulate chat time increase
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setChatTime(prev => prev + 1);
+    }, 60000); // 1 minute
+    return () => clearInterval(timer);
+  }, []);
+
+  // Check condition when chat time changes
+  useEffect(() => {
+    if (chatTime >= 10 && !meetChatCondition) {
+      setShowFreeCardOffer(true);
+      setMeetChatCondition(true); // prevents it from showing again immediately
+    }
+  }, [chatTime, meetChatCondition]);
+
+  const handleClaimNow = () => {
+    navigation.navigate('TarotGame', {
+      zodiac: 'aries', // replace with your userZodiac
+      free: true,
+    });
+    setShowFreeCardOffer(false);
+    // Reset so it can show again later if condition meets again
+    setMeetChatCondition(false);
+    setChatTime(0);
+  };
+
   const startTimer = () => {
     if (timerRef.current) return;
 
@@ -102,6 +145,7 @@ export default function ChatScreen() {
       setElapsedSeconds((prev) => {
         const updated = prev + 1;
         AsyncStorage.setItem("@elapsed_seconds", updated.toString());
+
 
         if (updated >= SESSION_LIMIT) {
           stopTimer();
@@ -120,57 +164,6 @@ export default function ChatScreen() {
       timerRef.current = null;
     }
   };
-
-  // const sendMessage = async () => {
-  //   if (!inputText.trim() || !isSessionActive) return;
-
-  //   const userMsg = {
-  //     id: Date.now().toString(),
-  //     sender: "user",
-  //     text: inputText,
-  //   };
-
-  //   const updatedUserMsgs = [...messages, userMsg];
-  //   setMessages(updatedUserMsgs);
-  //   saveSession(updatedUserMsgs);
-  //   setInputText("");
-  //   setLoading(true);
-
-  //   let customPrompt = "You are a wise tarot reader.";
-  //   try {
-  //     const botProfile = await AsyncStorage.getItem("@tarot_bot");
-  //     if (botProfile) {
-  //       const parsed = JSON.parse(botProfile);
-  //       customPrompt = `You are ${parsed.name}, a tarot bot with a ${parsed.style} style. Always reply in that tone.`;
-  //     }
-  //   } catch {}
-
-  //   try {
-  //     const response = await axios.post(
-  //       "https://backend-tarot.netlify.app/.netlify/functions/tarot-bot",
-  //       {
-  //         prompt: inputText,
-  //         system: customPrompt,
-  //         lang: language,
-  //       }
-  //     );
-
-  //     const botMsg = {
-  //       id: Date.now().toString() + "-bot",
-  //       sender: "bot",
-  //       text: response.data.reply,
-  //     };
-
-  //     const updatedBotMsgs = [...updatedUserMsgs, botMsg];
-  //     setMessages(updatedBotMsgs);
-  //     saveSession(updatedBotMsgs);
-  //   } catch (error) {
-  //     console.error("[API Error]", error.message);
-  //     Alert.alert("Error", "Failed to get a reply from the Tarot AI.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
 const sendMessage = async () => {
   if (!inputText.trim() || !isSessionActive) return;
@@ -193,19 +186,33 @@ const sendMessage = async () => {
       const hasChinese = /[\u4e00-\u9fff]/.test(text);
       return hasChinese ? "zh" : "en";
     };
-
     const langCode = detectLang(inputText);
     console.log("🌐 Detected language:", langCode);
 
-    const systemPrompts = {
-      en: "You are Luna, a tarot bot with a Love style. Always reply in that tone.",
-      zh: "你是露娜，一位神秘的爱情塔罗占卜师。请始终用中文回答，风格要温柔浪漫，像是在倾诉爱情的诗人。",
-    };
+    // Get bot profile from storage
+    let customPromptEn = "You are Luna, a tarot bot with a Love style. Always reply in that tone.";
+    let customPromptZh = "你是露娜，一位神秘的爱情塔罗占卜师。请始终用中文回答，风格要温柔浪漫，像是在倾诉爱情的诗人。";
+
+    try {
+      const botProfile = await AsyncStorage.getItem("@tarot_bot");
+      if (botProfile) {
+        const parsed = JSON.parse(botProfile);
+        if (langCode === "en") {
+          customPromptEn = `You are ${parsed.name}, a tarot bot with a ${parsed.style} style. Always reply in that tone.`;
+        } else {
+          customPromptZh = `你是${parsed.name}，一位${parsed.style}的塔罗占卜师。请始终用中文回答，并保持这种语气。`;
+        }
+      }
+    } catch (err) {
+      console.warn("⚠️ Could not load custom bot profile:", err);
+    }
+
+    const systemPrompt = langCode === "en" ? customPromptEn : customPromptZh;
 
     const payload = {
       lang: langCode,
       question: inputText,
-      system: systemPrompts[langCode],
+      system: systemPrompt,
     };
 
     console.log("🔍 Sending payload to API:", payload);
@@ -215,13 +222,12 @@ const sendMessage = async () => {
       payload
     );
 
-    console.log("✅ API response:", JSON.stringify(response.data, null, 2));
-
     const botText =
       (response?.data?.answer && String(response.data.answer).trim()) ||
       (response?.data?.reply && String(response.data.reply).trim()) ||
       (response?.data?.message && String(response.data.message).trim()) ||
-      "🤖 No response from the Tarot bot.";
+      // "🤖 No response from the Tarot bot.";
+      i18n.t("no_response");
 
     const botMsg = {
       id: Date.now().toString() + "-bot",
@@ -234,11 +240,13 @@ const sendMessage = async () => {
     saveSession(updatedBotMsgs);
   } catch (error) {
     console.error("[API Error]", error.response?.data || error.message);
-    Alert.alert("Error", "Failed to get a reply from the Tarot AI.");
+    // Alert.alert("Error", "Failed to get a reply from the Tarot AI.");
+    Alert.alert(i18n.t("error"), i18n.t("failed_reply"));
   } finally {
     setLoading(false);
   }
 };
+
 
 
   const saveSession = async (updatedMessages) => {
@@ -266,7 +274,8 @@ const sendMessage = async () => {
     try {
       const userId = await AsyncStorage.getItem("@user_id");
       if (!userId) {
-        Alert.alert("Missing User ID");
+        // Alert.alert("Missing User ID");
+        Alert.alert(i18n.t("missing_user_id"));
         return false;
       }
 
@@ -280,12 +289,14 @@ const sendMessage = async () => {
         setWalletBalance(res.data.balance);
         return true;
       } else {
-        Alert.alert("❌ Error", res.data.error || "Failed to deduct balance");
+        // Alert.alert("❌ Error", res.data.error || "Failed to deduct balance");
+        Alert.alert(i18n.t("error"), res.data.error || i18n.t("deduct_failed"));
         return false;
       }
     } catch (err) {
       console.error("❌ Deduction error:", err.message);
-      Alert.alert("❌ Error", err.message || "Deduction failed");
+      // Alert.alert("❌ Error", err.message || "Deduction failed");
+      Alert.alert(i18n.t("error"), err.message || i18n.t("deduct_failed"));
       return false;
     }
   };
@@ -306,9 +317,11 @@ const sendMessage = async () => {
 
         startTimer();
 
-        Alert.alert("✅ 6 RMB Used", "1 more minute added.");
+        // Alert.alert("✅ 6 RMB Used", "1 more minute added.");
+        Alert.alert(i18n.t("recharged"), i18n.t("minute_added"));
       } else {
-        Alert.alert("💰 Not Enough Balance", "Please recharge to continue.");
+        // Alert.alert("💰 Not Enough Balance", "Please recharge to continue.");
+        Alert.alert(i18n.t("noBalance"), i18n.t("recahargeit"));
       }
     } catch (e) {
       console.error("Recharge error:", e);
@@ -345,7 +358,7 @@ const sendMessage = async () => {
     >
       {isSessionActive && (
         <Text style={{ textAlign: "center", color: "#aaa", marginTop: 10 }}>
-          ⏳ {Math.max(0, SESSION_LIMIT - elapsedSeconds)}s left in this session
+          ⏳ {Math.max(0, SESSION_LIMIT - elapsedSeconds)}s {i18n.t("left_in_session")}
         </Text>
       )}
 
@@ -360,7 +373,7 @@ const sendMessage = async () => {
         <View style={styles.loadingRow}>
           <ActivityIndicator size="small" color="#f8e1c1" />
           <Text style={{ color: "#aaa", marginLeft: 10 }}>
-            Tarot Bot is thinking...
+           {i18n.t("thinking")}
           </Text>
         </View>
       )}
@@ -380,20 +393,67 @@ const sendMessage = async () => {
         >
           <Ionicons name="send" size={20} color="#fff" />
         </TouchableOpacity>
+
+{/* Inside your component */}
+ <Modal
+        visible={showFreeCardOffer}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFreeCardOffer(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#fff',
+              padding: 20,
+              borderRadius: 10,
+              alignItems: 'center',
+              width: '80%',
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+              🎁 {i18n.t("free_tarot_title")}
+            </Text>
+            <Text style={{ marginBottom: 20 }}>
+              {i18n.t("free_tarot_desc")}
+            </Text>
+
+            <TouchableOpacity
+              onPress={handleClaimNow}
+              style={{
+                backgroundColor: '#8e44ad',
+                paddingVertical: 10,
+                paddingHorizontal: 20,
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>{i18n.t("claim_now")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       </View>
 
       {showPaymentPopup && (
         <View style={styles.popup}>
-          <Text style={styles.popupText}>🔮 Your session has ended.</Text>
-          <Text style={styles.popupText}>Recharge 6 RMB to continue.</Text>
+          <Text style={styles.popupText}>🔮 {i18n.t("session_ended")}</Text>
+          <Text style={styles.popupText}>{i18n.t("recharge_prompt")}</Text>
           <Text style={[styles.popupText, { marginTop: 6 }]}>
-            Wallet Balance: {walletBalance} RMB
+            {i18n.t("wallet_balance")} {walletBalance} RMB
           </Text>
           <TouchableOpacity
             style={styles.rechargeButton}
             onPress={handleRecharge}
           >
-            <Text style={styles.rechargeText}>Recharge Now</Text>
+            <Text style={styles.rechargeText}>{i18n.t("recharge_now")}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -506,6 +566,30 @@ const styles = StyleSheet.create({
     color: "#2c2c4e",
     fontWeight: "bold",
   },
+  freeCardOffer: {
+  backgroundColor: "#f8e1c1",
+  padding: 15,
+  borderRadius: 12,
+  margin: 12,
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+  shadowOffset: { width: 0, height: 2 },
+  elevation: 3,
+},
+freeCardTitle: {
+  fontSize: 18,
+  fontWeight: "bold",
+  color: "#2c2c4e",
+  marginBottom: 6,
+},
+freeCardDesc: {
+  fontSize: 14,
+  color: "#444",
+  textAlign: "center",
+},
+
 });
 
 

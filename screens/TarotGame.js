@@ -18,28 +18,29 @@ import { ThemeContext } from '../context/ThemeContext';
 const DEDUCT_POINTS_URL = 'https://backend-tarot-app.netlify.app/.netlify/functions/update-points';
 
 export default function TarotGame({ route }) {
-  const { zodiac } = route.params;
+  const { zodiac: zodiacParam, free = false } = route.params || {};
+  const zodiac = zodiacParam || ''; // fallback to empty string
   const { user, updateProfile } = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
 
   const tarotReadings = [
-  i18n.t('readings.path'),
-  i18n.t('readings.opportunity'),
-  i18n.t('readings.pastReturn'),
-  i18n.t('readings.risk'),
-  i18n.t('readings.rest'),
-  i18n.t('readings.love'),
-  i18n.t('readings.success'),
-  i18n.t('readings.beginning'),
-  i18n.t('readings.intuition'),
-  i18n.t('readings.change'),
-  i18n.t('readings.energy'),
-  i18n.t('readings.fear'),
-  i18n.t('readings.letGo'),
-  i18n.t('readings.protection'),
-  i18n.t('readings.patience'),
-];
+    i18n.t('readings.path'),
+    i18n.t('readings.opportunity'),
+    i18n.t('readings.pastReturn'),
+    i18n.t('readings.risk'),
+    i18n.t('readings.rest'),
+    i18n.t('readings.love'),
+    i18n.t('readings.success'),
+    i18n.t('readings.beginning'),
+    i18n.t('readings.intuition'),
+    i18n.t('readings.change'),
+    i18n.t('readings.energy'),
+    i18n.t('readings.fear'),
+    i18n.t('readings.letGo'),
+    i18n.t('readings.protection'),
+    i18n.t('readings.patience'),
+  ];
 
   const [shuffledCards, setShuffledCards] = useState(shuffle([...tarotReadings]).slice(0, 9));
   const [hasPlayed, setHasPlayed] = useState(false);
@@ -52,8 +53,6 @@ export default function TarotGame({ route }) {
     return [...array].sort(() => Math.random() - 0.5);
   }
 
-
-
   const handleShuffle = () => {
     if (hasPlayed) return;
     setShuffledCards(shuffle([...tarotReadings]).slice(0, 9));
@@ -62,8 +61,9 @@ export default function TarotGame({ route }) {
   };
 
   const handleCardSelect = async (index) => {
-    if (user.points < 5) {
-      Alert.alert(i18n.t('tarot.notEnough'), i18n.t('tarot.needFive'));
+    // ✅ Skip deduction if free session
+    if (!free && user.points < 100) {
+      Alert.alert(i18n.t('tarot.notEnough'), i18n.t('tarot.needHundrad'));
       return;
     }
 
@@ -72,7 +72,7 @@ export default function TarotGame({ route }) {
       return;
     }
 
-    const updatedPoints = user.points - 5;
+    const updatedPoints = free ? user.points : user.points - 100;
     setLoading(true);
     setSelectedIndex(index);
 
@@ -82,26 +82,27 @@ export default function TarotGame({ route }) {
     ]).start();
 
     try {
-      const response = await fetch(DEDUCT_POINTS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.userId,
-          points: updatedPoints,
-        }),
-      });
+      if (!free) {
+        const response = await fetch(DEDUCT_POINTS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.userId,
+            points: updatedPoints,
+          }),
+        });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        Alert.alert(i18n.t('tarot.error'), result.message || i18n.t('tarot.deductionFailed'));
-        return;
+        const result = await response.json();
+        if (!response.ok) {
+          Alert.alert(i18n.t('tarot.error'), result.message || i18n.t('tarot.deductionFailed'));
+          return;
+        }
       }
 
       setTimeout(() => {
         setReading(shuffledCards[index]);
         setHasPlayed(true);
-        updateProfile({ points: updatedPoints });
+        if (!free) updateProfile({ points: updatedPoints });
         setLoading(false);
       }, 1000);
     } catch (err) {
@@ -119,10 +120,9 @@ export default function TarotGame({ route }) {
         colors={isDark ? ['#2c2c54', '#4b4b7e'] : ['#e0c3fc', '#8ec5fc']}
         style={styles.container}
       >
-        {/* <Text style={styles.title}>🔮 {zodiac} {i18n.t('tarot.readingTitle')}</Text> */}
         <Text style={styles.title}>
-  🔮 {i18n.t(`zodiac.signs.${zodiac.toLowerCase()}`)} {i18n.t('tarot.readingTitle')}
-</Text>
+          🔮 {zodiac ? i18n.t(`zodiac.signs.${zodiac.toLowerCase()}`) : ''} {i18n.t('tarot.readingTitle')}
+        </Text>
 
         <Text style={styles.subtitle}>{i18n.t('tarot.pickCard')}</Text>
 
@@ -164,6 +164,7 @@ export default function TarotGame({ route }) {
     </SafeAreaView>
   );
 }
+
 
 // 🧠 Dynamic styling with theme
 const getStyles = (isDark) =>

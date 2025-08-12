@@ -55,14 +55,14 @@ i18n.locale = language;
       {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.leftHeader}>
-          <Image
+          {/* <Image
             source={
               profileImageUri
                 ? { uri: profileImageUri }
                 : require("../assets/avatar.png")
             }
             style={styles.profileImage}
-          />
+          /> */}
           <Text
             style={[
               styles.headerText,
@@ -97,12 +97,22 @@ i18n.locale = language;
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Avatar */}
-        <View style={styles.avatarContainer}>
+         <View style={styles.avatarContainer}>
+          <Image
+            source={
+              profileImageUri
+                ? { uri: profileImageUri }
+                : require("../assets/avatar.png")
+            }
+            style={styles.avatar}
+          />
+        </View>
+        {/* <View style={styles.avatarContainer}>
           <Image
             source={require("../assets/avatar.png")}
             style={styles.avatar}
           />
-        </View>
+        </View> */}
 
         {/* Grid Buttons */}
         <View style={styles.grid}>
@@ -138,11 +148,17 @@ i18n.locale = language;
 // Grid Menu Items with i18n keys
 const menuItems = [
   { nameKey: "horoscope", icon: "star-outline", screen: "Horoscope", lib: "Ionicons" },
+  { nameKey: "tarotCard", icon: "cards-outline", screen: "NewChat", lib: "MaterialCommunityIcons" },
+  
   { nameKey: "chat", icon: "chatbubbles-outline", screen: "Chat", lib: "Ionicons" },
   { nameKey: "myBot", icon: "robot", screen: "MyBot", lib: "MaterialCommunityIcons" },
+
   { nameKey: "fortuneTeller", icon: "crystal-ball", screen: "ZodiacSelection", lib: "MaterialCommunityIcons" },
   { nameKey: "recharge", icon: "wallet-outline", screen: "Recharge", lib: "Ionicons" },
+
+  { nameKey: "cardHistory", icon: "history", screen: "ChatHistory", lib: "MaterialCommunityIcons" },
   { nameKey: "history", icon: "history", screen: "History", lib: "FontAwesome5" },
+  
   { nameKey: "dailyCheckIn", icon: "calendar-check-outline", screen: "DailyCheckIn", lib: "MaterialCommunityIcons" },
   { nameKey: "settings", icon: "cog-outline", screen: "Settings", lib: "MaterialCommunityIcons" },
 ];

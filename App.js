@@ -33,6 +33,9 @@ import CoinsRewardScreen from './screens/CoinsRewardScreen';
 import ZodiacSelectionScreen from './screens/ZodiacSelectionScreen';
 import TarotGame from './screens/TarotGame';
 import DailyCheckInScreen from './screens/DailyCheckInScreen';
+import ChatHistory from './screens/ChatHistory';
+import ChatDetailScreen from './screens/ChatDetailScreen';
+import TarotCardChatScreen from './screens/TarotCardChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -92,6 +95,9 @@ function AppNavigator() {
         <Stack.Screen name="CoinsReward" component={CoinsRewardScreen} options={{ title: i18n.t('coinsReward') }} />
         <Stack.Screen name="Alipay" component={AlipayScreen} />
         <Stack.Screen name="PaypalSuccess" component={PaypalSuccess} />
+        <Stack.Screen name="NewChat" component={TarotCardChatScreen} options={{ title: i18n.t('tarotCard') }}  />
+        <Stack.Screen name="ChatHistory" component={ChatHistory} options={{ title: i18n.t('history') }} />
+        <Stack.Screen name="ChatDetail" component={ChatDetailScreen} options={{ title: i18n.t('chatDetail') }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
