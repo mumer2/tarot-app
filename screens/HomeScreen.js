@@ -157,7 +157,7 @@ const menuItems = [
   { nameKey: "recharge", icon: "wallet-outline", screen: "Recharge", lib: "Ionicons" },
 
   { nameKey: "cardHistory", icon: "history", screen: "ChatHistory", lib: "MaterialCommunityIcons" },
-  { nameKey: "history", icon: "history", screen: "History", lib: "FontAwesome5" },
+  { nameKey: "chatHistory", icon: "history", screen: "History", lib: "FontAwesome5" },
   
   { nameKey: "dailyCheckIn", icon: "calendar-check-outline", screen: "DailyCheckIn", lib: "MaterialCommunityIcons" },
   { nameKey: "settings", icon: "cog-outline", screen: "Settings", lib: "MaterialCommunityIcons" },
