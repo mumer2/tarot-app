@@ -11,6 +11,8 @@ const STORAGE_KEYS = {
   points: 'userPoints',
   referralCode: 'userReferral',
   referredBy: 'userReferredBy',
+  birthday: 'userBirthday',
+  zodiacSign: 'userZodiacSign',
 };
 
 export const AuthProvider = ({ children }) => {
@@ -22,6 +24,8 @@ export const AuthProvider = ({ children }) => {
     points: 0,
     referralCode: '',
     referredBy: '',
+    birthday: '',
+    zodiacSign: '',
   });
 
   const [loading, setLoading] = useState(true);
@@ -45,6 +49,8 @@ export const AuthProvider = ({ children }) => {
           points: parseInt(values[STORAGE_KEYS.points]) || 0,
           referralCode: values[STORAGE_KEYS.referralCode],
           referredBy: values[STORAGE_KEYS.referredBy],
+          birthday: values[STORAGE_KEYS.birthday],
+          zodiacSign: values[STORAGE_KEYS.zodiacSign],
         });
       } catch (error) {
         console.error('❌ Failed to load user from storage:', error);
@@ -65,6 +71,8 @@ export const AuthProvider = ({ children }) => {
     const points = user.points || 0;
     const referralCode = user.referralCode || '';
     const referredBy = user.referredBy || '';
+    const birthday = user.birthday || '';
+    const zodiacSign = user.zodiacSign || '';
 
     await AsyncStorage.multiSet([
       [STORAGE_KEYS.token, token],
@@ -74,10 +82,12 @@ export const AuthProvider = ({ children }) => {
       [STORAGE_KEYS.points, String(points)],
       [STORAGE_KEYS.referralCode, referralCode],
       [STORAGE_KEYS.referredBy, referredBy],
+      [STORAGE_KEYS.birthday, birthday],
+      [STORAGE_KEYS.zodiacSign, zodiacSign],
     ]);
 
     setAuthToken(token);
-    setUser({ name, profilePic, userId, points, referralCode, referredBy });
+    setUser({ name, profilePic, userId, points, referralCode, referredBy, birthday, zodiacSign });
   };
 
   const logout = async () => {
@@ -91,25 +101,37 @@ export const AuthProvider = ({ children }) => {
       points: 0,
       referralCode: '',
       referredBy: '',
+      birthday: '',
+      zodiacSign: '',
     });
   };
 
-  const updateProfile = async ({ name, profilePic, points }) => {
+  const updateProfile = async (updates) => {
     const updatedUser = { ...user };
 
-    if (name !== undefined) {
-      await AsyncStorage.setItem(STORAGE_KEYS.name, name);
-      updatedUser.name = name;
+    if (updates.name !== undefined) {
+      await AsyncStorage.setItem(STORAGE_KEYS.name, updates.name);
+      updatedUser.name = updates.name;
     }
 
-    if (profilePic !== undefined) {
-      await AsyncStorage.setItem(STORAGE_KEYS.profilePic, profilePic);
-      updatedUser.profilePic = profilePic;
+    if (updates.profilePic !== undefined) {
+      await AsyncStorage.setItem(STORAGE_KEYS.profilePic, updates.profilePic);
+      updatedUser.profilePic = updates.profilePic;
     }
 
-    if (points !== undefined) {
-      await AsyncStorage.setItem(STORAGE_KEYS.points, String(points));
-      updatedUser.points = points;
+    if (updates.points !== undefined) {
+      await AsyncStorage.setItem(STORAGE_KEYS.points, String(updates.points));
+      updatedUser.points = updates.points;
+    }
+
+    if (updates.birthday !== undefined) {
+      await AsyncStorage.setItem(STORAGE_KEYS.birthday, updates.birthday);
+      updatedUser.birthday = updates.birthday;
+    }
+
+    if (updates.zodiacSign !== undefined) {
+      await AsyncStorage.setItem(STORAGE_KEYS.zodiacSign, updates.zodiacSign);
+      updatedUser.zodiacSign = updates.zodiacSign;
     }
 
     setUser(updatedUser);
@@ -133,6 +155,143 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+
+// import React, { createContext, useState, useEffect } from 'react';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// export const AuthContext = createContext();
+
+// const STORAGE_KEYS = {
+//   token: '@jwt',
+//   name: 'userName',
+//   profilePic: 'profileImage',
+//   userId: 'userId',
+//   points: 'userPoints',
+//   referralCode: 'userReferral',
+//   referredBy: 'userReferredBy',
+// };
+
+// export const AuthProvider = ({ children }) => {
+//   const [authToken, setAuthToken] = useState(null);
+//   const [user, setUser] = useState({
+//     name: '',
+//     profilePic: null,
+//     userId: '',
+//     points: 0,
+//     referralCode: '',
+//     referredBy: '',
+//   });
+
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     const loadUser = async () => {
+//       try {
+//         const storedValues = await AsyncStorage.multiGet(Object.values(STORAGE_KEYS));
+
+//         const values = storedValues.reduce((acc, [key, value]) => {
+//           acc[key] = value || '';
+//           return acc;
+//         }, {});
+
+//         setAuthToken(values[STORAGE_KEYS.token]);
+
+//         setUser({
+//           name: values[STORAGE_KEYS.name],
+//           profilePic: values[STORAGE_KEYS.profilePic] || null,
+//           userId: values[STORAGE_KEYS.userId],
+//           points: parseInt(values[STORAGE_KEYS.points]) || 0,
+//           referralCode: values[STORAGE_KEYS.referralCode],
+//           referredBy: values[STORAGE_KEYS.referredBy],
+//         });
+//       } catch (error) {
+//         console.error('❌ Failed to load user from storage:', error);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     loadUser();
+//   }, []);
+
+//   const login = async ({ token, user }) => {
+//     if (!token || !user) return;
+
+//     const name = user.name || '';
+//     const profilePic = user.profilePic || '';
+//     const userId = user._id || user.userId || '';
+//     const points = user.points || 0;
+//     const referralCode = user.referralCode || '';
+//     const referredBy = user.referredBy || '';
+
+//     await AsyncStorage.multiSet([
+//       [STORAGE_KEYS.token, token],
+//       [STORAGE_KEYS.name, name],
+//       [STORAGE_KEYS.profilePic, profilePic],
+//       [STORAGE_KEYS.userId, userId],
+//       [STORAGE_KEYS.points, String(points)],
+//       [STORAGE_KEYS.referralCode, referralCode],
+//       [STORAGE_KEYS.referredBy, referredBy],
+//     ]);
+
+//     setAuthToken(token);
+//     setUser({ name, profilePic, userId, points, referralCode, referredBy });
+//   };
+
+//   const logout = async () => {
+//     await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
+
+//     setAuthToken(null);
+//     setUser({
+//       name: '',
+//       profilePic: null,
+//       userId: '',
+//       points: 0,
+//       referralCode: '',
+//       referredBy: '',
+//     });
+//   };
+
+//   const updateProfile = async ({ name, profilePic, points }) => {
+//     const updatedUser = { ...user };
+
+//     if (name !== undefined) {
+//       await AsyncStorage.setItem(STORAGE_KEYS.name, name);
+//       updatedUser.name = name;
+//     }
+
+//     if (profilePic !== undefined) {
+//       await AsyncStorage.setItem(STORAGE_KEYS.profilePic, profilePic);
+//       updatedUser.profilePic = profilePic;
+//     }
+
+//     if (points !== undefined) {
+//       await AsyncStorage.setItem(STORAGE_KEYS.points, String(points));
+//       updatedUser.points = points;
+//     }
+
+//     setUser(updatedUser);
+//   };
+
+//   const isLoggedIn = !!authToken;
+
+//   return (
+//     <AuthContext.Provider
+//       value={{
+//         authToken,
+//         user,
+//         isLoggedIn,
+//         login,
+//         logout,
+//         updateProfile,
+//         loading,
+//       }}
+//     >
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
 
 
 

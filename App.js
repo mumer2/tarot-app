@@ -21,7 +21,6 @@ import HistoryScreen from './screens/HistoryScreen';
 import SessionView from './screens/SessionView';
 import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 import TermsScreen from './screens/TermsScreen';
-import AlipayScreen from './screens/AlipayQRScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
@@ -36,6 +35,8 @@ import DailyCheckInScreen from './screens/DailyCheckInScreen';
 import ChatHistory from './screens/ChatHistory';
 import ChatDetailScreen from './screens/ChatDetailScreen';
 import TarotCardChatScreen from './screens/TarotCardChatScreen';
+import AlipayScreen from './screens/AlipayScreen';
+import WeChatPayScreen from './screens/WeChatPayScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -93,7 +94,8 @@ function AppNavigator() {
         <Stack.Screen name="Terms" component={TermsScreen} options={{ title: i18n.t('termsOfService') }} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: i18n.t('resetPassword') }} />
         <Stack.Screen name="CoinsReward" component={CoinsRewardScreen} options={{ title: i18n.t('coinsReward') }} />
-        <Stack.Screen name="Alipay" component={AlipayScreen} />
+        <Stack.Screen name="AlipayScreen" component={AlipayScreen} options={{ title: "Alipay" }} />
+        <Stack.Screen name="WeChatPayScreen" component={WeChatPayScreen} options={{ title: "Wechat" }} />
         <Stack.Screen name="PaypalSuccess" component={PaypalSuccess} />
         <Stack.Screen name="NewChat" component={TarotCardChatScreen} options={{ title: i18n.t('tarotCard') }}  />
         <Stack.Screen name="ChatHistory" component={ChatHistory} options={{ title: i18n.t('history') }} />

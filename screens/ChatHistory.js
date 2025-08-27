@@ -136,7 +136,6 @@ export default function ChatHistory() {
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 20 }}
-          inverted
         />
       )}
     </View>

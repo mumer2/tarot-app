@@ -8,13 +8,13 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/Logo.png",
+      "image": "./assets/TarotLogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "12",
+      "buildNumber": "16",
       "bundleIdentifier": "com.mumermalik.tarotapp",
       "infoPlist": {
     "ITSAppUsesNonExemptEncryption": false,

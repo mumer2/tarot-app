@@ -55,37 +55,38 @@ export default function RechargeScreen() {
     fetchBalanceFromServer();
   }, [isFocused]);
 
-  const handleWeChatH5Pay = async (amount) => {
-    if (!amount || isNaN(amount) || amount < 10) {
-      return Alert.alert(i18n.t('invalidAmount'), i18n.t('minimumAmount') + ' 10 RMB.');
-    }
+  // const handleWeChatH5Pay = async (amount) => {
+  //   if (!amount || isNaN(amount) || amount < 10) {
+  //     return Alert.alert(i18n.t('invalidAmount'), i18n.t('minimumAmount') + ' 10 RMB.');
+  //   }
 
-    try {
-      setLoading(true);
-      const userId = await AsyncStorage.getItem('@user_id');
-      if (!userId) return Alert.alert(i18n.t('error'), i18n.t('userIdMissing'));
+  //   try {
+  //     setLoading(true);
+  //     const userId = await AsyncStorage.getItem('@user_id');
+  //     if (!userId) return Alert.alert(i18n.t('error'), i18n.t('userIdMissing'));
 
-      const res = await axios.post(
-        'https://backend-tarot-app.netlify.app/.netlify/functions/wechat-pay',
-        { total_fee: amount * 100, userId }
-      );
+  //     const res = await axios.post(
+  //       'https://backend-tarot-app.netlify.app/.netlify/functions/wechat-pay',
+  //       { total_fee: amount * 100, userId }
+  //     );
 
-      if (res.data?.paymentUrl) {
-        await AsyncStorage.setItem('@last_order_amount', amount.toString());
-        const supported = await Linking.canOpenURL(res.data.paymentUrl);
-        supported
-          ? Linking.openURL(res.data.paymentUrl)
-          : Alert.alert(i18n.t('cannotOpenPaymentPage'));
-      } else {
-        Alert.alert('WeChat Pay', res.data.error || i18n.t('missingPaymentUrl'));
-      }
-    } catch (err) {
-      console.error('WeChat error:', err);
-      Alert.alert(i18n.t('error'), err.message || i18n.t('unexpectedError'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     if (res.data?.paymentUrl) {
+  //       await AsyncStorage.setItem('@last_order_amount', amount.toString());
+  //       const supported = await Linking.canOpenURL(res.data.paymentUrl);
+  //       supported
+  //         ? Linking.openURL(res.data.paymentUrl)
+  //         : Alert.alert(i18n.t('cannotOpenPaymentPage'));
+  //     } else {
+  //       Alert.alert('WeChat Pay', res.data.error || i18n.t('missingPaymentUrl'));
+  //     }
+  //   } catch (err) {
+  //     console.error('WeChat error:', err);
+  //     Alert.alert(i18n.t('error'), err.message || i18n.t('unexpectedError'));
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
 
   const handlePaypalPay = async (amount) => {
     if (!amount || isNaN(amount) || amount < 10) {
@@ -169,7 +170,42 @@ export default function RechargeScreen() {
         onChangeText={setManualAmount}
       />
 
+
       <TouchableOpacity
+  style={[styles(isDark).button, { backgroundColor: '#1677FF' }]}
+  onPress={() => {
+    if (!manualAmount || isNaN(manualAmount) || Number(manualAmount) < 10) {
+      return Alert.alert(i18n.t('invalidAmount'), i18n.t('minimumAmount') + ' 10 RMB.');
+    }
+    navigation.navigate('AlipayScreen', { amount: Number(manualAmount) });
+  }}
+  disabled={loading}
+>
+  <Text style={[styles(isDark).buttonText, { color: '#fff' }]}>
+    Alipay {manualAmount || '...'} {i18n.t('currency')}
+  </Text>
+</TouchableOpacity>
+
+<TouchableOpacity
+  style={[styles(isDark).button, { backgroundColor: '#7bb32e' }]}
+  onPress={() => {
+    if (!manualAmount || isNaN(manualAmount) || Number(manualAmount) < 10) {
+      return Alert.alert(i18n.t('invalidAmount'), i18n.t('minimumAmount') + ' 10 RMB.');
+    }
+    navigation.navigate('WeChatPayScreen', { amount: Number(manualAmount) });
+  }}
+  disabled={loading}
+>
+  <Text style={[styles(isDark).buttonText, { color: '#fff' }]}>
+    WeChat Pay {manualAmount || '...'} {i18n.t('currency')}
+  </Text>
+</TouchableOpacity>
+
+
+
+
+
+      {/* <TouchableOpacity
         style={[styles(isDark).button, { backgroundColor: '#7bb32e' }]}
         onPress={() => handleWeChatH5Pay(Number(manualAmount || 0))}
         disabled={loading}
@@ -177,7 +213,7 @@ export default function RechargeScreen() {
         <Text style={[styles(isDark).buttonText, { color: '#fff' }]}>
           WeChat Pay {manualAmount || '...'} {i18n.t('currency')}
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <TouchableOpacity
         style={[styles(isDark).button, { backgroundColor: '#0070BA' }]}
