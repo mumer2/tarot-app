@@ -10,8 +10,6 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/config-plugins": "~10.1.1",
-    "@expo/prebuild-config": "~9.0.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/datetimepicker": "8.4.1",
     "@react-navigation/bottom-tabs": "^7.4.2",
@@ -20,7 +18,7 @@
     "@stripe/stripe-react-native": "0.45.0",
     "axios": "^1.10.0",
     "dayjs": "^1.11.13",
-    "expo": "53.0.20",
+    "expo": "^53.0.22",
     "expo-clipboard": "~7.1.5",
     "expo-dev-client": "~5.2.4",
     "expo-image-picker": "~16.1.4",
@@ -43,7 +41,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "eas-cli": "^16.14.1"
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0"
   },
   "expo": {
     "doctor": {
