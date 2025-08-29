@@ -63,7 +63,7 @@ export default function TarotGame({ route }) {
   const handleCardSelect = async (index) => {
     // ✅ Skip deduction if free session
     if (!free && user.points < 100) {
-      Alert.alert(i18n.t('tarot.notEnough'), i18n.t('tarot.needHundrad'));
+      Alert.alert(i18n.t('noCoin'), i18n.t('needCoin'));
       return;
     }
 

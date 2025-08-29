@@ -383,6 +383,11 @@ session: {
         shuffleAgain: "Shuffle & Draw Again",
       },
 
+      noCoin:"Not Enough Points",
+      needCoin: "You need at least 100 points to draw a card.",
+
+
+
       // TarotGameScreen.js
      tarot: {
     readingTitle: "Tarot Reading",
@@ -579,7 +584,6 @@ TheWorld_meaning: "Completion, wholeness, attainment, celebration of life",
   // Alipay
    invalidAmount: "Invalid amount",
     minimumAmount: "The minimum payment amount is",
-    error: "Error",
     userIdMissing: "User ID is missing. Please log in again.",
     missingPaymentUrl: "Payment URL not received from server.",
     unexpectedError: "Unexpected error occurred. Please try again.",
@@ -1168,7 +1172,6 @@ TheWorld_meaning: "完成，整体，成就，生命的庆典",
   // Alipay
     invalidAmount: "金额无效",
     minimumAmount: "最低付款金额是",
-    error: "错误",
     userIdMissing: "用户ID缺失，请重新登录。",
     missingPaymentUrl: "未从服务器获取支付链接。",
     unexpectedError: "发生意外错误，请重试。",
